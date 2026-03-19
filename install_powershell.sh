@@ -111,7 +111,12 @@ install_rpm() {
     local sudo_cmd
     sudo_cmd="$(get_sudo)"
 
-    local prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
+    # For Fedora, use prod.repo, otherwise packages-microsoft-prod.repo
+    if [[ "$distro" == "fedora" ]]; then
+        local prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/prod.repo"
+    else
+        local prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
+    fi
 
     if command -v dnf &>/dev/null; then
         log_section "Registering Microsoft package repository (dnf) for ${distro} ${version}..."
