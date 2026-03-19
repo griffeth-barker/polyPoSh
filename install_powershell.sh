@@ -138,6 +138,13 @@ install_rpm() {
         $sudo_cmd "$pkg_mgr" install -y curl
     fi
 
+    log_section "Importing Microsoft GPG key..."
+    # The GPG key must be imported before the repo is registered so that dnf/yum
+    # can verify the signed repo metadata (repomd.xml).  Without this, dnf5
+    # (Fedora 39+) silently rejects the repo metadata and reports every package
+    # in the repo as "No match", even though the repo file was placed correctly.
+    $sudo_cmd rpm --import "${MICROSOFT_PACKAGES_URL}/keys/microsoft.asc"
+
     log_section "Registering Microsoft package repository for ${distro} ${version}..."
     # .repo files must be placed in /etc/yum.repos.d/ — they are not RPM packages
     # and cannot be installed via 'dnf/yum install <url>'.
