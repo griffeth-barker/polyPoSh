@@ -86,9 +86,9 @@ install_deb() {
     local sudo_cmd
     sudo_cmd="$(get_sudo)"
 
-    log_section "Installing prerequisites (wget, apt-transport-https, software-properties-common)..."
+    log_section "Installing prerequisites (wget, apt-transport-https)..."
     $sudo_cmd apt-get update -q
-    $sudo_cmd apt-get install -y -q wget apt-transport-https software-properties-common
+    $sudo_cmd apt-get install -y -q wget apt-transport-https
 
     log_section "Registering Microsoft package repository for ${distro} ${version}..."
     local prod_deb_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.deb"
@@ -115,12 +115,14 @@ install_rpm() {
     # contain a PowerShell package — they only ship procdump/procmon tooling.
     # PowerShell is published in the RHEL repos.  Fedora 37+ is binary-compatible
     # with RHEL 9 (same glibc / RPM ABI), so we use the RHEL 9 repo for Fedora.
+    # All Microsoft RHEL config dirs (7, 8, 9) only publish "prod.repo" — there
+    # is no "packages-microsoft-prod.repo" file at those paths.
     local prod_repo_url repo_dest
     if [ "$distro" = "fedora" ]; then
-        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/rhel/9/packages-microsoft-prod.repo"
+        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/rhel/9/prod.repo"
         repo_dest="/etc/yum.repos.d/packages-microsoft-prod.repo"
     else
-        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
+        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/prod.repo"
         repo_dest="/etc/yum.repos.d/packages-microsoft-prod.repo"
     fi
 
