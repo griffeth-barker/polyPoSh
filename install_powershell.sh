@@ -111,37 +111,40 @@ install_rpm() {
     local sudo_cmd
     sudo_cmd="$(get_sudo)"
 
-    # For Fedora, use prod.repo, otherwise packages-microsoft-prod.repo
-    if [[ "$distro" == "fedora" ]]; then
-        local prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/prod.repo"
+    # Fedora uses "prod.repo"; RHEL-family distros use "packages-microsoft-prod.repo"
+    local prod_repo_url repo_dest
+    if [ "$distro" = "fedora" ]; then
+        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/prod.repo"
+        repo_dest="/etc/yum.repos.d/microsoft-prod.repo"
     else
-        local prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
+        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
+        repo_dest="/etc/yum.repos.d/packages-microsoft-prod.repo"
     fi
 
+    # Determine which package manager is available
+    local pkg_mgr
     if command -v dnf &>/dev/null; then
-        log_section "Registering Microsoft package repository (dnf) for ${distro} ${version}..."
-        $sudo_cmd dnf install -y "$prod_repo_url"
-
-        log_section "Installing PowerShell..."
-        $sudo_cmd dnf install -y powershell
-
+        pkg_mgr="dnf"
     elif command -v yum &>/dev/null; then
-        log_section "Registering Microsoft package repository (yum) for ${distro} ${version}..."
-        # Ensure curl is available for downloading the repo file
-        if ! command -v curl &>/dev/null; then
-            yum install -y curl
-        fi
-        # yum cannot install a URL directly; download the repo file first
-        $sudo_cmd curl -fsSL "$prod_repo_url" \
-            -o /etc/yum.repos.d/packages-microsoft-prod.repo
-
-        log_section "Installing PowerShell..."
-        $sudo_cmd yum install -y powershell
-
+        pkg_mgr="yum"
     else
         echo "ERROR: No supported package manager found (dnf or yum)." >&2
         exit 1
     fi
+
+    # Ensure curl is available to download the .repo file
+    if ! command -v curl &>/dev/null; then
+        log_section "Installing curl prerequisite..."
+        $sudo_cmd "$pkg_mgr" install -y curl
+    fi
+
+    log_section "Registering Microsoft package repository for ${distro} ${version}..."
+    # .repo files must be placed in /etc/yum.repos.d/ — they are not RPM packages
+    # and cannot be installed via 'dnf/yum install <url>'.
+    $sudo_cmd curl -fsSL "$prod_repo_url" -o "$repo_dest"
+
+    log_section "Installing PowerShell..."
+    $sudo_cmd "$pkg_mgr" install -y powershell
 }
 
 # ---------------------------------------------------------------------------
