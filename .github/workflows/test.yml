@@ -1,0 +1,36 @@
+name: Test PowerShell Installation
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - ubuntu:22.04
+          - ubuntu:20.04
+          - debian:12
+          - debian:11
+          - fedora:40
+          - fedora:39
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run install_powershell.sh in ${{ matrix.distro }} container
+        run: |
+          docker run --rm \
+            --volume "${{ github.workspace }}/install_powershell.sh:/install_powershell.sh:ro" \
+            "${{ matrix.distro }}" \
+            bash -c "bash /install_powershell.sh && pwsh --version"
