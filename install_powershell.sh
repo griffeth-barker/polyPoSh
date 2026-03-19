@@ -111,11 +111,14 @@ install_rpm() {
     local sudo_cmd
     sudo_cmd="$(get_sudo)"
 
-    # Fedora uses "prod.repo"; RHEL-family distros use "packages-microsoft-prod.repo"
+    # The Microsoft Fedora-specific repos (packages.microsoft.com/fedora/*) do NOT
+    # contain a PowerShell package — they only ship procdump/procmon tooling.
+    # PowerShell is published in the RHEL repos.  Fedora 37+ is binary-compatible
+    # with RHEL 9 (same glibc / RPM ABI), so we use the RHEL 9 repo for Fedora.
     local prod_repo_url repo_dest
     if [ "$distro" = "fedora" ]; then
-        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/prod.repo"
-        repo_dest="/etc/yum.repos.d/microsoft-prod.repo"
+        prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/rhel/9/packages-microsoft-prod.repo"
+        repo_dest="/etc/yum.repos.d/packages-microsoft-prod.repo"
     else
         prod_repo_url="${MICROSOFT_PACKAGES_URL}/config/${distro}/${version}/packages-microsoft-prod.repo"
         repo_dest="/etc/yum.repos.d/packages-microsoft-prod.repo"
