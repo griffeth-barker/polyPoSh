@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-27
+
+### Added
+- macOS support: installs PowerShell via Homebrew (`brew install powershell`)
+  when available, falling back to the official `.pkg` from GitHub Releases
+  when Homebrew is not present. Note: PowerShell is a Homebrew formula, not
+  a cask
+- Intel Mac (`x86_64`) and Apple Silicon (`arm64` / M-series) both supported
+- `arm64` added to `detect_arch` (macOS reports `arm64`; Linux reports
+  `aarch64` for the same hardware class)
+- GitHub Actions `test-macos` CI job covering `macos-latest` (ARM64) and
+  `macos-13` (Intel x86_64)
+
 ## [1.0.1] - 2026-05-27
 
 ### Fixed
@@ -56,6 +69,7 @@ First formally versioned release.
   the correct arm binary automatically; updated to accurately describe the
   x86\_64 (package manager) and arm (tarball) installation paths
 
-[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/griffeth-barker/polyposh/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/griffeth-barker/polyposh/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/griffeth-barker/polyposh/releases/tag/v1.0.0
