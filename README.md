@@ -23,7 +23,7 @@ The SHA256 hash of the current script is: `9A07746F76EBD30E676F4BC84945349813C48
 > Use this tool at your own risk. The maintainers are not responsible for any system instability or security compromises resulting from the use of this installation method.
 
 # Contributing
-If you'd like to contribute, please do so! Check out [CONTRIBUTING](/docs/contributing.md).  
+If you'd like to contribute, please do so! Check out [CONTRIBUTING](/docs/contributing.md).    
 Feedback and contributions are always welcome via issues and pull requests.
   
 # Feedback and Support
