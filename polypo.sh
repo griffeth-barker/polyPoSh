@@ -25,7 +25,7 @@
 
 set -euo pipefail
 
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.0.1"
 MICROSOFT_PACKAGES_URL="https://packages.microsoft.com"
 
 # ---------------------------------------------------------------------------

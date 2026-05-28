@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-05-27
+
+### Fixed
+- `install_tarball` on Debian/Ubuntu now installs the versioned ICU runtime
+  package directly (e.g. `libicu72`, `libicu70`) instead of `libicu-dev`,
+  which was pulling in 70+ unnecessary packages (X11, image codecs, manpages)
+  via `icu-devtools` → `libgd3`
+
 ## [1.0.0] - 2026-05-27
 
 First formally versioned release.
@@ -48,5 +56,6 @@ First formally versioned release.
   the correct arm binary automatically; updated to accurately describe the
   x86\_64 (package manager) and arm (tarball) installation paths
 
-[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/griffeth-barker/polyposh/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/griffeth-barker/polyposh/releases/tag/v1.0.0
