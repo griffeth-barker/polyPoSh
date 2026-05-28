@@ -39,6 +39,26 @@ jobs:
             "${{ matrix.distro }}" \
             bash -c "bash /polypo.sh && pwsh --version"
 
+  test-macos:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest   # ARM64 (Apple Silicon)
+          - macos-13       # x86_64 (Intel)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run polypo.sh
+        run: bash polypo.sh && pwsh --version
+
   test-arm64:
     name: Test on ${{ matrix.distro }} (aarch64)
     runs-on: ubuntu-24.04-arm
