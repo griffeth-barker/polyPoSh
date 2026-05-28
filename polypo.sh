@@ -223,13 +223,18 @@ install_tarball() {
     # libicu is required by PowerShell's .NET runtime for globalization;
     # it is normally pulled in automatically when installing via a package
     # manager, but must be installed explicitly for the tarball path.
-    # On Debian/Ubuntu, libicu-dev depends on the versioned libicuNN runtime
-    # package for that distro, making it the most reliable install target.
+    # On Debian/Ubuntu the ICU runtime package is versioned (libicu72,
+    # libicu70, etc.) and changes per distro release.  libicu-dev would
+    # resolve the right version but pulls in 70+ extra packages including
+    # X11 and image libraries via icu-devtools → libgd3.  Instead, detect
+    # the runtime package name directly via apt-cache.
     # RHEL-based images often ship curl-minimal which conflicts with curl;
     # only install curl if no curl implementation is already present.
     if command -v apt-get &>/dev/null; then
         $sudo_cmd apt-get update -q
-        $sudo_cmd apt-get install -y -q curl tar libicu-dev
+        local icu_pkg
+        icu_pkg=$(apt-cache pkgnames 'libicu' | grep -E '^libicu[0-9]+$' | sort -V | tail -1)
+        $sudo_cmd apt-get install -y -q curl tar "${icu_pkg}"
     elif command -v dnf &>/dev/null; then
         command -v curl &>/dev/null || $sudo_cmd dnf install -y curl
         $sudo_cmd dnf install -y tar libicu
