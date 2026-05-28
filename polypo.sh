@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 # polypo.sh
 #
-# Installs PowerShell on the current Linux distribution.
+# Installs PowerShell on Linux and macOS.
 #
-# x86_64  : registers Microsoft's package repository and installs via the
-#            native package manager (apt / dnf / zypper).
-# aarch64 : Microsoft does not publish arm64 packages in their Linux repos;
-#            the latest release tarball is downloaded from GitHub instead.
-# armv7l  : same tarball approach as aarch64, using the arm32 build.
+# macOS
+#   Installed via Homebrew (brew install --cask powershell) when available,
+#   otherwise falls back to the official .pkg from GitHub Releases.
+#   Supports Intel (x86_64) and Apple Silicon (arm64 / M-series).
+#
+# Linux x86_64
+#   Registers Microsoft's package repository and installs via the native
+#   package manager (apt / dnf / zypper).
+#
+# Linux aarch64 / armv7l
+#   Microsoft does not publish arm packages in their Linux repos; the latest
+#   release tarball is downloaded from GitHub Releases instead.
 #
 # No PowerShell version numbers are hard-coded; the script always installs
-# the latest version available from Microsoft's repos (x86_64) or the
-# latest GitHub release (arm).
+# the latest version available from Microsoft's repos (Linux x86_64) or the
+# latest GitHub release (macOS and Linux arm).
 #
-# Supported distributions:
+# Supported Linux distributions:
 #   Debian-based : Ubuntu (20.04+), Debian (10+)
 #   RPM-based    : RHEL (7–9), CentOS Stream (8–9), Fedora (37+),
 #                  Rocky Linux (8–9), AlmaLinux (8–9)
@@ -21,11 +28,11 @@
 #
 # Usage:
 #   bash polypo.sh
-#   sudo bash polypo.sh   # when not running as root
+#   sudo bash polypo.sh   # Linux, when not running as root
 
 set -euo pipefail
 
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.1.0"
 MICROSOFT_PACKAGES_URL="https://packages.microsoft.com"
 
 # ---------------------------------------------------------------------------
@@ -72,12 +79,15 @@ detect_arch() {
     ARCH="$(uname -m)"
     case "$ARCH" in
         x86_64)
-            # Package manager path — Microsoft publishes PowerShell for x86_64
-            # in their Linux repos for all supported distributions.
+            # Linux: package manager path.
+            # macOS: Homebrew or .pkg from GitHub Releases.
             ;;
         aarch64 | armv7l)
-            # Tarball path — Microsoft does not publish arm packages in their
-            # Linux repos; the GitHub release tarball is used instead.
+            # Linux arm: GitHub Releases tarball (not in Microsoft's Linux repos).
+            ;;
+        arm64)
+            # macOS Apple Silicon: Homebrew or .pkg from GitHub Releases.
+            # Note: macOS reports arm64; Linux reports aarch64 for 64-bit ARM.
             ;;
         *)
             echo "ERROR: Unsupported architecture: $ARCH" >&2
@@ -277,11 +287,70 @@ install_tarball() {
 }
 
 # ---------------------------------------------------------------------------
+# macOS: install via Homebrew (preferred) or .pkg from GitHub Releases
+# ---------------------------------------------------------------------------
+install_macos() {
+    local sudo_cmd
+    sudo_cmd="$(get_sudo)"
+
+    if command -v brew &>/dev/null; then
+        log_section "Installing PowerShell via Homebrew..."
+        brew install powershell
+        return
+    fi
+
+    # Homebrew not found — fall back to the official .pkg from GitHub Releases.
+    log_section "Homebrew not found; installing via .pkg from GitHub Releases..."
+
+    local arch_suffix
+    case "$ARCH" in
+        x86_64) arch_suffix="osx-x64" ;;
+        arm64)  arch_suffix="osx-arm64" ;;
+    esac
+
+    log_section "Fetching latest PowerShell release from GitHub..."
+    local version
+    version=$(curl -fsSL "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" \
+        | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+
+    if [ -z "$version" ]; then
+        echo "ERROR: Could not determine the latest PowerShell version from GitHub." >&2
+        exit 1
+    fi
+
+    local pkg="powershell-${version}-${arch_suffix}.pkg"
+    local url="https://github.com/PowerShell/PowerShell/releases/download/v${version}/${pkg}"
+
+    log_section "Downloading PowerShell ${version} for ${ARCH}..."
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    curl -fsSL "$url" -o "${tmp_dir}/${pkg}"
+
+    log_section "Installing PowerShell..."
+    $sudo_cmd installer -pkg "${tmp_dir}/${pkg}" -target /
+
+    rm -rf "$tmp_dir"
+}
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 main() {
-    detect_os
     detect_arch
+
+    # macOS detection must happen before detect_os — /etc/os-release is
+    # Linux-only and does not exist on macOS.
+    if [ "$(uname -s)" = "Darwin" ]; then
+        echo "Detected OS  : macOS"
+        echo "Architecture : ${ARCH}"
+        install_macos
+        echo ""
+        echo "PowerShell installed successfully!"
+        pwsh --version
+        return
+    fi
+
+    detect_os
 
     echo "Detected OS  : ${OS_PRETTY_NAME}"
     echo "Architecture : ${ARCH}"
