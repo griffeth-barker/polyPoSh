@@ -9,7 +9,7 @@ You can run the script immediately using the following command:
 curl -sSL https://polypo.sh/install | bash
 ```
 
-The SHA256 hash of the current script is: `9A07746F76EBD30E676F4BC84945349813C480164E70F49E4237EEE2C9AA1F94`  
+The SHA256 hash of the current script is: `BC8B1CCD57635930A5415851B87E335FB984474F8D826A45ECEECDB3FCB0EA3A`  
   
 > **⚠️  Warning**
 >   
