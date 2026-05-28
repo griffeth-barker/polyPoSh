@@ -1,7 +1,9 @@
 ![](/assets/polyPoSh-logo-x500-nobg.png)  
   
 # polyPoSh
-A shell script for installing the appropriate PowerShell package based on Linux distribution and architecture.
+A shell script for installing the appropriate PowerShell package based on operating system, Linux distribution, and architecture.
+
+Supports Linux (x86_64, aarch64, armv7l) and macOS (Intel and Apple Silicon).
 
 # Getting Started
 You can run the script immediately using the following command:
@@ -9,7 +11,7 @@ You can run the script immediately using the following command:
 curl -sSL https://polypo.sh/install | bash
 ```
 
-The SHA256 hash of the current script is: `9A07746F76EBD30E676F4BC84945349813C480164E70F49E4237EEE2C9AA1F94`  
+The SHA256 hash of the current script is: `B9464599283A4B4657CA21F3634B2FB5593C105F38A5014DB6EE6BD77D3BC1F4`  
   
 > **⚠️  Warning**
 >   
