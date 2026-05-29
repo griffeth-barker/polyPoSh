@@ -32,7 +32,7 @@
 
 set -euo pipefail
 
-SCRIPT_VERSION="1.1.0"
+SCRIPT_VERSION="1.2.0"
 MICROSOFT_PACKAGES_URL="https://packages.microsoft.com"
 
 # ---------------------------------------------------------------------------
@@ -287,6 +287,63 @@ install_tarball() {
 }
 
 # ---------------------------------------------------------------------------
+# Arch-based (Arch Linux, Garuda, Manjaro): AUR helper preferred, tarball fallback.
+# Microsoft does not publish PowerShell to Arch/pacman repos; the idiomatic
+# path is the AUR package powershell-bin via yay or paru.  When no AUR helper
+# is present (e.g. a minimal Arch container), fall back to the GitHub Releases
+# tarball — the same binary that the AUR package wraps.
+# ---------------------------------------------------------------------------
+install_arch() {
+    local sudo_cmd
+    sudo_cmd="$(get_sudo)"
+
+    local aur_helper=""
+    if command -v yay &>/dev/null; then
+        aur_helper="yay"
+    elif command -v paru &>/dev/null; then
+        aur_helper="paru"
+    fi
+
+    if [ -n "$aur_helper" ]; then
+        log_section "Installing PowerShell via ${aur_helper} (AUR)..."
+        "$aur_helper" -S --noconfirm powershell-bin
+        return
+    fi
+
+    log_section "No AUR helper found; installing via GitHub Releases tarball..."
+
+    log_section "Installing prerequisites (curl, tar, icu)..."
+    $sudo_cmd pacman -Sy --noconfirm curl tar icu
+
+    log_section "Fetching latest PowerShell release from GitHub..."
+    local version
+    version=$(curl -fsSL "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" \
+        | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+
+    if [ -z "$version" ]; then
+        echo "ERROR: Could not determine the latest PowerShell version from GitHub." >&2
+        exit 1
+    fi
+
+    local tarball="powershell-${version}-linux-x64.tar.gz"
+    local url="https://github.com/PowerShell/PowerShell/releases/download/v${version}/${tarball}"
+
+    log_section "Downloading PowerShell ${version} for ${ARCH}..."
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    curl -fsSL "$url" -o "${tmp_dir}/${tarball}"
+
+    log_section "Installing PowerShell..."
+    local install_dir="/opt/microsoft/powershell/7"
+    $sudo_cmd mkdir -p "$install_dir"
+    $sudo_cmd tar -xzf "${tmp_dir}/${tarball}" -C "$install_dir"
+    $sudo_cmd chmod +x "${install_dir}/pwsh"
+    $sudo_cmd ln -sf "${install_dir}/pwsh" /usr/local/bin/pwsh
+
+    rm -rf "$tmp_dir"
+}
+
+# ---------------------------------------------------------------------------
 # macOS: install via Homebrew (preferred) or .pkg from GitHub Releases
 # ---------------------------------------------------------------------------
 install_macos() {
@@ -381,9 +438,12 @@ main() {
         opensuse* | sles)
             install_zypper
             ;;
+        arch | garuda | manjaro)
+            install_arch
+            ;;
         *)
             echo "ERROR: Unsupported or unrecognized Linux distribution: ${OS_ID}" >&2
-            echo "Supported: Ubuntu, Debian, Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, SLES" >&2
+            echo "Supported: Ubuntu, Debian, Fedora, RHEL, CentOS, Rocky Linux, AlmaLinux, openSUSE, SLES, Arch Linux, Garuda Linux, Manjaro" >&2
             exit 1
             ;;
     esac

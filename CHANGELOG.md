@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-28
+
+### Added
+- Arch-based Linux support: Arch Linux, Garuda Linux, and Manjaro are now
+  supported on x86_64. When an AUR helper (`yay` or `paru`) is present it is
+  used to install `powershell-bin` from the AUR; otherwise the script falls
+  back to the official GitHub Releases tarball with prerequisites installed via
+  `pacman`
+- `archlinux:latest` added to the x86_64 test matrix in both
+  `tests/run_tests.sh` and `.github/workflows/test.yml`
+
 ## [1.1.0] - 2026-05-27
 
 ### Added
@@ -69,7 +80,8 @@ First formally versioned release.
   the correct arm binary automatically; updated to accurately describe the
   x86\_64 (package manager) and arm (tarball) installation paths
 
-[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/griffeth-barker/polyposh/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/griffeth-barker/polyposh/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/griffeth-barker/polyposh/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/griffeth-barker/polyposh/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/griffeth-barker/polyposh/releases/tag/v1.0.0
