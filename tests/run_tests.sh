@@ -82,6 +82,7 @@ DEFAULT_DISTROS=(
     "rockylinux:9"
     "almalinux:9"
     "opensuse/leap:15.5"
+    "archlinux:latest"
 )
 
 # Use command-line arguments as distros when provided, otherwise use defaults

@@ -26,6 +26,7 @@ jobs:
           - rockylinux:9
           - almalinux:9
           - opensuse/leap:15.5
+          - archlinux:latest
 
     steps:
       - name: Checkout repository
